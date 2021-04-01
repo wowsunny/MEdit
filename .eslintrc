@@ -1,6 +1,13 @@
 {
-  "plugins": ["prettier", "@typescript-eslint"],
-  "extends": ["airbnb-typescript", "react-app", "prettier"],
+  "plugins": [
+    "prettier",
+    "@typescript-eslint"
+  ],
+  "extends": [
+    "airbnb-typescript",
+    "react-app",
+    "prettier"
+  ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "project": "./tsconfig.json"
@@ -13,7 +20,10 @@
     }
   },
   "rules": {
-    "object-curly-spacing": ["warn", "always"],
+    "object-curly-spacing": [
+      "warn",
+      "always"
+    ],
     "no-unused-vars": [
       "warn",
       {
@@ -28,21 +38,12 @@
         "args": "none"
       }
     ],
-    "@typescript-eslint/no-explicit-any": [
-      "error",
-      {
-        "ignoreRestArgs": true
-      }
-    ],
-    "max-len": [
-      "warn",
-      {
-        "code": 80,
-        "ignoreStrings": true,
-        "ignoreTemplateLiterals": true,
-        "ignoreComments": true
-      }
-    ],
+    "@typescript-eslint/no-explicit-any": "off",
+    "max-len": "off",
+    "max-classes-per-file": "off",
+    "arrow-body-style":"off",
+    "class-methods-use-this": "off",
+    "prefer-destructuring": "off",
     "no-plusplus": [
       "error",
       {
@@ -50,6 +51,8 @@
       }
     ],
     "react/jsx-key": "error",
+    "consistent-return": "off",
+    "no-debugger": "off",
     "import/no-extraneous-dependencies": [
       "error",
       {

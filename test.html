@@ -1,0 +1,28 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <p id='p'>
+    <strong id='strong'>
+      strong
+    </strong>
+    <em id='em'>
+      em
+    </em>
+    <code id='code'>
+      code
+    </code>
+  </p>
+</body>
+<script>
+  let target = 'abc**sdf**';
+
+  console.log(target.match(/^\*\*((?:\\[\s\S]|[^\\])+?)\*\*(?!\*)/));
+</script>
+
+</html>
