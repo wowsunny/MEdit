@@ -38,12 +38,15 @@ export default class PlainText extends InlineComponent {
   }
 
   public refresh() {
-    this.component.innerHTML = '';
-    this.component.appendChild(document.createTextNode(this.content));
+    this.component.innerHTML = this.content;
   }
 
   public setContent(content: string) {
     this.content = content;
+    // this.refresh();
+    if (content === this.component.innerHTML) {
+      return;
+    }
     this.refresh();
   }
 
@@ -56,9 +59,28 @@ export default class PlainText extends InlineComponent {
       return false;
     });
     eventBus.subscribe(BusEventTypes.deleteEmpty, this.key, () => {
-      console.log(this.component.parentElement?.innerHTML);
       if (document.contains(this.component)) return;
       this.destroy();
+    });
+    eventBus.subscribe(BusEventTypes.findEnterAnchor, this.key, () => {
+      const selection = document.getSelection();
+      if (selection?.anchorNode && this.component.contains(selection?.anchorNode)) {
+        const offset = selection.anchorOffset;
+        const content = this.getContent();
+        const curContent = content.slice(0, offset);
+        const nextContent = content.slice(offset);
+        // this.setContent(curContent);
+        this.inlineMountProps?.handleEnter(this.key,
+          curContent.length === 0 ? undefined : {
+            type: InlineStyleTypes.plainText,
+            childList: [],
+            content: curContent
+          }, nextContent.length === 0 ? undefined : {
+            type: InlineStyleTypes.plainText,
+            childList: [],
+            content: this.getContent().slice(offset)
+          });
+      }
     });
 
   }
@@ -76,14 +98,15 @@ export default class PlainText extends InlineComponent {
     if (!this.component.contains(selection.anchorNode)) {
       console.error(`active node is ${selection.anchorNode} instead of ${this.component}`);
     }
-    this.content = this.component.innerHTML;
+
+    this.content = this.component.innerHTML.replace(/&nbsp;/g, ' ');
     const offset = selection.anchorOffset;
     const curContent = this.content.slice(0, offset);
     const nextContent = this.content.slice(offset);
-    this.setContent(curContent);
+    this.setContent(curContent.replace(/\s/g, '&nbsp;'));
     const wbr = new Wbr({ type: InlineStyleTypes.wbr, childList: [] });
     if (nextContent.length) {
-      const sibling = this.clone([], nextContent);
+      const sibling = this.clone([], nextContent.replace(/\s/g, '&nbsp;'));
       this.inlineMountProps!.handleInsertSibling(this.key, [wbr, sibling], !(curContent.length));
     } else {
       this.inlineMountProps!.handleInsertSibling(this.key, [wbr], !(curContent.length));

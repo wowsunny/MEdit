@@ -3,7 +3,7 @@ import { BusEventTypes } from 'component/EventBus';
 import InlineComponent, { InlineMountProps } from '../InlineComponent';
 
 interface WbrProps extends DefaultComponentProps {
-
+  
 }
 
 export default class Wbr extends InlineComponent {
@@ -46,4 +46,5 @@ export default class Wbr extends InlineComponent {
   public clone(childList: InlineComponent[]): Wbr {
     return new Wbr({ type: this.type, childList });
   }
+
 }

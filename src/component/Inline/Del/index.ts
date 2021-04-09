@@ -12,6 +12,14 @@ export default class Del extends InlineComponent {
   constructor(props: DelProps) {
     super(props);
     this.component = document.createElement('del');
+    this.refresh();
+  }
+
+  public refresh() {
+    this.component.innerHTML = '';
+    this.childList.forEach(child => {
+      this.component.appendChild(child.component);
+    });
   }
 
   public getMarkdown() {

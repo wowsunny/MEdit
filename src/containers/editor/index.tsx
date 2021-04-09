@@ -14,7 +14,7 @@ const Editor: React.FC<EditorProps> = () => {
   }, []);
   return (
     <div className='editor-wrapper' ref={ref}>
-      <Intendentation childList={[]} />
+      <Intendentation id='initIndentation' childList={[]} depth={0} handleInsertSiblings={() => { }}  />
     </div>
   );
 };

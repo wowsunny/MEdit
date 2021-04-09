@@ -1,4 +1,4 @@
-import EventBus from 'component/EventBus';
+import EventBus, { BusEventTypes } from 'component/EventBus';
 import DefaultComponent, { DefaultComponentProps } from 'component/DefaultComponent';
 import { BlockStyleTypes, DefaultDataItem, InlineStyleTypes } from 'types/ComponentTypes';
 import { componentsToDataList } from 'utils/componentToData';
@@ -14,16 +14,21 @@ export default abstract class InlineComponent extends DefaultComponent {
 
   constructor(props: DefaultComponentProps) {
     super(props);
+    console.log('create: ', this.key);
   }
 
   onChildInsertSibling(key: string, siblings: DefaultComponent[], replace: boolean) {
     if (!this.mounted) throw new Error('unmounted component cannot use this function');
     const index = this.findChildIndex(key);
+    let temp = index;
     siblings.forEach(sibling => {
-      (this.component.childNodes[index] as Element).insertAdjacentElement('afterend', sibling.component);
+      (this.component.childNodes[temp] as Element).insertAdjacentElement('afterend', sibling.component);
       this.mountChild(sibling as InlineComponent);
+      temp += 1;
     });
     if (replace) {
+      console.log('replace child: ', this.childList[index].key);
+      this.inlineMountProps?.eventBus.remove(this.childList[index].key);
       this.childList.splice(index, 1, ...siblings);
       this.component.removeChild(this.component.childNodes[index]);
     } else {
@@ -39,19 +44,21 @@ export default abstract class InlineComponent extends DefaultComponent {
     const nextDataList = componentsToDataList(this.childList.slice(index + 1) as InlineComponent[]);
     (_cur?.childList.length || _cur?.content?.length) && curDataList.push(_cur);
     (_next?.childList.length || _next?.content?.length) && nextDataList.unshift(_next);
-    const cur = curDataList.length ? { type: BlockStyleTypes.paragragh, childList: curDataList } : undefined;
-    const next = nextDataList.length ? { type: BlockStyleTypes.paragragh, childList: nextDataList } : undefined;
+    const cur = curDataList.length ? { type: this.type, childList: curDataList } : undefined;
+    const next = nextDataList.length ? { type: this.type, childList: nextDataList } : undefined;
     this.inlineMountProps!.handleEnter(this.key, cur, next);
   }
 
   onChildDestroy(key: string) {
+    console.log('destroy:', key);
     const index = this.findChildIndex(key);
+    if (document.contains(this.childList[index].component))
+      this.component.removeChild(this.component.childNodes[index]);
     this.childList.splice(index, 1);
     if (!this.childList.length) {
       this.destroy();
-      return;
     }
-    this.component.removeChild(this.component.childNodes[index]);
+
   }
 
   // mount but not contains
@@ -105,8 +112,10 @@ export default abstract class InlineComponent extends DefaultComponent {
     console.log('remove: ', key);
     const index = this.findChildIndex(key);
     this.childList.splice(index, 1);
-    this.component.removeChild(this.component.childNodes[index]);
     this.inlineMountProps?.eventBus.remove(key);
+    const childNode = this.component.childNodes[index];
+    if (childNode && this.component.contains(childNode))
+      this.component.removeChild(this.component.childNodes[index]);
   }
 
   abstract getContent(): string;

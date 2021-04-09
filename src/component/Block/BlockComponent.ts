@@ -4,7 +4,8 @@ import EventBus, { BusEventTypes } from '../EventBus';
 
 export interface BlockMountProps {
   handleInsertSiblings: (components: DefaultDataItem, replace: boolean) => void;
-  [propName: string]: any;
+  handleEnter: (key: string, nextChildren: DefaultDataItem[]) => void;
+  handleTab: (key: string, isInside: boolean) => void;
 }
 
 export default abstract class BlockComponent extends DefaultComponent {
@@ -23,8 +24,11 @@ export default abstract class BlockComponent extends DefaultComponent {
     this.mounted = false;
   }
 
+  // TODO to finish
   public destroy() {
     this.childList = [];
   }
+
+  abstract oneStepToDelete: boolean;
 
 }

@@ -1,6 +1,8 @@
 .editor-wrapper {
-  padding: 0 200px;
+  padding: 0 15%;
   width: 100vw;
+  min-width: 800px;
+  overflow: scroll;
   height: 100vh;
   outline: transparent;
 }

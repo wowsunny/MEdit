@@ -21,7 +21,7 @@ export default abstract class DefaultComponent {
     const { type, childList = [] } = props;
     this.type = type;
     this.key = getKey(this.type);
-    this.childList = (childList);
+    this.childList = childList;
     this.displayMarkdown = false;
     this.mounted = false;
   }
@@ -37,13 +37,12 @@ export default abstract class DefaultComponent {
   onChildInsertSibling(key: string, siblings: DefaultComponent[], replace: boolean) {
     if (!this.mounted) throw new Error('unmounted component cannot use this function');
     const index = this.findChildIndex(key);
-
     if (replace) {
       const newList = this.childList.slice();
       newList.splice(index, 1, ...siblings);
       this.setChildList(newList);
     } else {
-      const newList =  this.childList.slice();
+      const newList = this.childList.slice();
       newList.splice(index + 1, 0, ...siblings);
       this.setChildList(newList);
     }
@@ -57,6 +56,14 @@ export default abstract class DefaultComponent {
     this.childList.forEach(child => {
       this.component.appendChild(child.component);
     });
+  }
+
+  public getDataList() {
+    this.childList.forEach(child => {
+      // eslint-disable-next-line
+      child.childList = child.getDataList();
+    });
+    return this.childList;
   }
 
   abstract component: Element;

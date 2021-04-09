@@ -3,9 +3,15 @@ export interface EventManagerProps {
   handleEnter: () => void;
   handleDelete: () => void;
   handleReParse: () => void;
+  handleTab: (isInside: boolean) => void;
+
 }
 export default class EventManager {
   target: Element;
+
+  isCtrlPress: boolean;
+
+  isShiftPress: boolean;
 
   isComposing: boolean;
 
@@ -17,27 +23,50 @@ export default class EventManager {
 
   isInputing: boolean;
 
+  onTab: (isInside: boolean) => void;
+
   constructor(props: EventManagerProps) {
-    const { target, handleEnter, handleDelete, handleReParse } = props;
+    const { target, handleEnter, handleDelete, handleReParse, handleTab } = props;
     this.target = target;
     this.onEnter = handleEnter;
     this.onDelete = handleDelete;
     this.reParse = handleReParse;
+    this.onTab = handleTab;
     this.isComposing = false;
     this.isInputing = false;
+    this.isCtrlPress = false;
+    this.isShiftPress = false;
     this.init();
   }
 
   init() {
     this.target.addEventListener('keydown', (e: any) => {
+      console.log(e);
+      if (e.code === 'ControlLeft') {
+        this.isCtrlPress = true;
+      } else if (e.code === 'ShiftLeft') {
+        this.isShiftPress = true;
+      }
+
       if (this.isComposing) return;
       if (e.code === 'Backspace' || e.code === 'Delete') {
-        // console.log('delete trigger');
+        // something
         // this.onDelete();
-        // e.preventDefault();
+
       } else if (e.code === 'Enter') {
         this.onEnter();
         e.preventDefault();
+      } else if (e.code === 'Tab') {
+        e.preventDefault();
+        e.stopPropagation();
+        this.onTab(!this.isShiftPress);
+      }
+    });
+    this.target.addEventListener('keyup', (e: any) => {
+      if (e.code === 'Ctrl') {
+        this.isCtrlPress = false;
+      } else if (e.code === 'Shift') {
+        this.isShiftPress = false;
       }
     });
     this.target.addEventListener('input', (e: InputEventInit) => {

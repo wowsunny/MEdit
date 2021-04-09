@@ -25,7 +25,7 @@ const rules: markdown.ParserRules = {
     }
   },
   wbr: {
-    order: 4 as any,
+    order: 14 as any,
     match: markdown.inlineRegex(/^(<wbr>)/g) as any,
     quality(capture: any) {
       // precedence by length, wins ties vs `u`:
@@ -71,9 +71,13 @@ function getASTNode(content: string): markdown.ASTNode {
   return markdown.parseBlock(parser, content.replace(/&lt;|&gt;|&amp;/g, (chr: string) => escapeMap[chr] as string), {});
 }
 export function getDataList(content: string) {
+  if (!content.length) return [{ type: InlineStyleTypes.plainText, childList: [], content: '' }];
   let ast: markdown.ASTNode = getASTNode(content);
   if (ast instanceof Array && ast[0].type === 'paragraph') ast = ast[0];
-  else throw new Error(`unexpected case: ${ast}`);
+  else {
+    console.log(ast, content);
+    throw new Error(`unexpected case: ${ast}`);
+  }
   const astToDataList = (_ast: markdown.SingleASTNode) => {
     const result: DefaultDataItem[] = [];
     const push = (data: DefaultDataItem) => {
