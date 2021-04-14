@@ -2,6 +2,7 @@ import EventBus, { BusEventTypes } from 'component/EventBus';
 import DefaultComponent, { DefaultComponentProps } from 'component/DefaultComponent';
 import { BlockStyleTypes, DefaultDataItem, InlineStyleTypes } from 'types/ComponentTypes';
 import { componentsToDataList } from 'utils/componentToData';
+import './style.scss';
 
 export interface InlineMountProps {
   eventBus: EventBus;
@@ -14,7 +15,6 @@ export default abstract class InlineComponent extends DefaultComponent {
 
   constructor(props: DefaultComponentProps) {
     super(props);
-    console.log('create: ', this.key);
   }
 
   onChildInsertSibling(key: string, siblings: DefaultComponent[], replace: boolean) {
@@ -22,6 +22,7 @@ export default abstract class InlineComponent extends DefaultComponent {
     const index = this.findChildIndex(key);
     let temp = index;
     siblings.forEach(sibling => {
+      console.log(this.component.childNodes[temp], this.component.innerHTML);
       (this.component.childNodes[temp] as Element).insertAdjacentElement('afterend', sibling.component);
       this.mountChild(sibling as InlineComponent);
       temp += 1;
@@ -74,6 +75,11 @@ export default abstract class InlineComponent extends DefaultComponent {
     this.mounted = true;
     this.inlineMountProps = props;
     const that = this;
+    this.inlineMountProps.eventBus.subscribe(BusEventTypes.showMarkdown, this.key, (values: { show: boolean }) => {
+      const { show } = values;
+      if (this.component.getAttribute('class') && (!!this.component.getAttribute('class')!.match(/mark/) === show)) return;
+      this.component.setAttribute('class', `${this.type}-${show ? 'mark' : ''}`);
+    });
     this.childList.forEach(child => {
       const { eventBus } = props;
       (child as InlineComponent).mount({

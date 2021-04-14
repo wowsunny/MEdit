@@ -25,7 +25,7 @@ const rules: markdown.ParserRules = {
     }
   },
   wbr: {
-    order: 14 as any,
+    order: 15 as any,
     match: markdown.inlineRegex(/^(<wbr>)/g) as any,
     quality(capture: any) {
       // precedence by length, wins ties vs `u`:
@@ -45,7 +45,7 @@ const rules: markdown.ParserRules = {
   },
   highlight: {
     order: 4 as any,
-    match: markdown.inlineRegex(/==(.+)==/) as any,
+    match: markdown.inlineRegex(/^==(.+)==/) as any,
     parse(capture: any, parse: any, state: any) {
       return {
         content: parse(capture[1])
@@ -75,7 +75,6 @@ export function getDataList(content: string) {
   let ast: markdown.ASTNode = getASTNode(content);
   if (ast instanceof Array && ast[0].type === 'paragraph') ast = ast[0];
   else {
-    console.log(ast, content);
     throw new Error(`unexpected case: ${ast}`);
   }
   const astToDataList = (_ast: markdown.SingleASTNode) => {

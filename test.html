@@ -8,21 +8,23 @@
 
 <body>
   <p id='p'>
-    <strong id='strong'>
-      strong
-    </strong>
-    <em id='em'>
-      em
+    <em class="em">
+      <span>123</span>
+      <span>123</span>
     </em>
-    <code id='code'>
-      code
-    </code>
   </p>
 </body>
 <script>
-  let target = 'abc**sdf**';
-
-  console.log(target.match(/^\*\*((?:\\[\s\S]|[^\\])+?)\*\*(?!\*)/));
+  const em = document.querySelector('em');
+  const text = document.createTextNode('11\u200B');
+  console.log(text.textContent.match(/\u200B/u));
 </script>
-
+<style>
+  .em::before{
+    content: '*'
+  }
+  .em::after{
+    content: '*'
+  }
+</style>
 </html>

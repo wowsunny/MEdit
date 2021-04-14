@@ -64,9 +64,14 @@ export default class PlainText extends InlineComponent {
     });
     eventBus.subscribe(BusEventTypes.findEnterAnchor, this.key, () => {
       const selection = document.getSelection();
-      if (selection?.anchorNode && this.component.contains(selection?.anchorNode)) {
+      const content = this.getContent();
+      if (!selection?.anchorNode) return;
+      // 消除零宽空格的影响
+      if (selection.anchorNode instanceof Text && selection.anchorNode.textContent === '\u200B') {
+        selection.anchorNode.remove();
+      }
+      if (this.component.contains(selection?.anchorNode)) {
         const offset = selection.anchorOffset;
-        const content = this.getContent();
         const curContent = content.slice(0, offset);
         const nextContent = content.slice(offset);
         // this.setContent(curContent);
@@ -80,6 +85,9 @@ export default class PlainText extends InlineComponent {
             childList: [],
             content: this.getContent().slice(offset)
           });
+      }
+      else if (selection?.anchorNode?.nodeName === 'P') {
+        this.inlineMountProps?.eventBus.dispatch(BusEventTypes.insertSiblingParagraph);
       }
     });
 

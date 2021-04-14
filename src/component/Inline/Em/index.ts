@@ -11,7 +11,10 @@ export default class Em extends InlineComponent {
 
   constructor(props: EmProps | DefaultComponentProps) {
     super(props);
-    this.component = document.createElement('em');
+    const em = document.createElement('em');
+    em.setAttribute('class', 'em');
+    this.component = em;
+
     this.refresh();
   }
 

@@ -12,7 +12,7 @@ export function componentToData(component: DefaultComponent, childList: DefaultD
     case InlineStyleTypes.del:
       return { type: InlineStyleTypes.del, childList };
     case InlineStyleTypes.plainText:
-      return { type: InlineStyleTypes.plainText, childList: [], content: '' };
+      return { type: InlineStyleTypes.plainText, childList: [], content: (component as any).content };
     case InlineStyleTypes.wbr:
       return { type: InlineStyleTypes.wbr, childList };
     default:

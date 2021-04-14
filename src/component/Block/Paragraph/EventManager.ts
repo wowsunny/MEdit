@@ -1,7 +1,7 @@
 export interface EventManagerProps {
   target: Element;
   handleEnter: () => void;
-  handleDelete: () => void;
+  handleDelete: (isKeyDown: boolean) => void;
   handleReParse: () => void;
   handleTab: (isInside: boolean) => void;
 
@@ -17,7 +17,7 @@ export default class EventManager {
 
   onEnter: () => void;
 
-  onDelete: () => void;
+  onDelete: (isKeyDown: boolean) => void;
 
   reParse: () => void;
 
@@ -41,7 +41,6 @@ export default class EventManager {
 
   init() {
     this.target.addEventListener('keydown', (e: any) => {
-      console.log(e);
       if (e.code === 'ControlLeft') {
         this.isCtrlPress = true;
       } else if (e.code === 'ShiftLeft') {
@@ -51,7 +50,7 @@ export default class EventManager {
       if (this.isComposing) return;
       if (e.code === 'Backspace' || e.code === 'Delete') {
         // something
-        // this.onDelete();
+        this.onDelete(true);
 
       } else if (e.code === 'Enter') {
         this.onEnter();
@@ -62,20 +61,14 @@ export default class EventManager {
         this.onTab(!this.isShiftPress);
       }
     });
-    this.target.addEventListener('keyup', (e: any) => {
-      if (e.code === 'Ctrl') {
-        this.isCtrlPress = false;
-      } else if (e.code === 'Shift') {
-        this.isShiftPress = false;
-      }
-    });
+    
     this.target.addEventListener('input', (e: InputEventInit) => {
       if (e.inputType?.match(/insert/)) {
         this.isInputing = true;
       }
       if (e.inputType === 'deleteContentForward' || e.inputType === 'deleteContentBackward') {
         console.log('delete trigger');
-        this.onDelete();
+        this.onDelete(false);
       }
     });
     this.target.addEventListener('compositionstart', (e: InputEventInit) => {
@@ -85,6 +78,12 @@ export default class EventManager {
       this.isComposing = false;
     });
     this.target.addEventListener('keyup', (e: any) => {
+      if (e.code === 'Ctrl') {
+        this.isCtrlPress = false;
+      } else if (e.code === 'Shift') {
+        this.isShiftPress = false;
+      }
+
       if (this.isComposing || !this.isInputing) return;
       // 触发解析
       this.reParse();

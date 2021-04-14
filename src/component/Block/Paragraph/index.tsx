@@ -8,6 +8,7 @@ import { dataListToComponents, dataToComponent } from 'utils/dataToComponent';
 import { getDataList } from 'utils/markdown';
 import { BusEventTypes } from 'component/EventBus';
 import Wbr from 'component/Inline/Wbr';
+import FocusManager from 'utils/FocusManager';
 import BlockComponent, { BlockMountProps } from '../BlockComponent';
 import EventManager from './EventManager';
 
@@ -23,12 +24,17 @@ export class ParagraphComponent extends BlockComponent {
     this.component.setAttribute('contenteditable', 'true');
     this.InitEventManager();
     this.refresh();
+    this.eventBus.subscribe(BusEventTypes.insertSiblingParagraph, this.key, (values?: { dataList?: DefaultDataItem[] }) => {
+      const { dataList = [] } = values || {};
+      this.blockMountProps!.handleInsertSiblings({ type: BlockStyleTypes.paragragh, childList: dataList }, false);
+    });
   }
 
   // component -> childList, 也是原子操作
   private format() {
     const childNodes = this.component.childNodes;
     let childIndex = 0;
+
     for (let i = 0; i < childNodes.length; i++) {
       const child = childNodes[i];
       if (child !== this.childList[childIndex]?.component) {
@@ -53,11 +59,18 @@ export class ParagraphComponent extends BlockComponent {
       this.eventBus.dispatch(BusEventTypes.findEnterAnchor);
     };
 
-    const handleDelete = () => {
+    // 为了在paragraph为空时监听delelte，设置了input和keydown两个监听器
+    const handleDelete = (isKeyDown: boolean) => {
+      if (isKeyDown) {
+        if (this.oneStepToDelete) {
+          this.destroy();
+        }
+        return;
+      }
       this.eventBus.dispatch(BusEventTypes.deleteEmpty);
-      this.eventBus.dispatch(BusEventTypes.recordAnchor, {}, true);
-      this.parseAnchor();
-      console.log('after parseAnchor , the component: ', this.component.innerHTML);
+      // this.eventBus.dispatch(BusEventTypes.recordAnchor, {}, true);
+      // this.parseAnchor();
+      // console.log('after parseAnchor , the component: ', this.component.innerHTML);
       if (!this.childList.length) {
         console.log('handle empty paragraph~~');
         if (this.oneStepToDelete) {
@@ -68,9 +81,33 @@ export class ParagraphComponent extends BlockComponent {
       }
     };
 
+    // 消除零宽空格
+    const removeNoWidthSpace = () => {
+      const func = (node: Node) => {
+        if (node instanceof Text && node.textContent?.match(/\u200B/u)) {
+          const content = node.textContent;
+          if (content === '\u200B') {
+            node.remove();
+          }
+          return;
+        }
+        node.childNodes.forEach(child => func(child));
+      };
+      func(this.component);
+    };
+
+    const BlockTrans = (md: string) => {
+      if (md.replace('<wbr>', '') === '-&nbsp;') {
+        this.blockMountProps!.handleInsertSiblings({ type: BlockStyleTypes.list, childList: [] }, true);
+        return true;
+      }
+      return false;
+    };
+
     // 核心逻辑
     const handleReParse = () => {
       this.oneStepToDelete = false;
+      removeNoWidthSpace();
       this.eventBus.dispatch(BusEventTypes.recordAnchor, {}, true, () => {
         const wbr = new Wbr({ type: InlineStyleTypes.wbr, childList: [] });
         this.mountChild(wbr);
@@ -78,13 +115,17 @@ export class ParagraphComponent extends BlockComponent {
         this.component.appendChild(wbr.component);
       });
       this.format();
-      const md = this.getMarkdown();
+      const md = this.getMarkdown().replace('\u200B', '');
       console.log('md: ', md);
+
+      if (BlockTrans(md)) return;
+
       const dataList = getDataList(md);
-      console.log('dataList: ', dataList);
+      // console.log('dataList: ', dataList);
       this.setChildList(dataList);
       this.parseAnchor();
-      console.log('after parseAnchor , the component: ', this.component.innerHTML);
+      // console.log('after parseAnchor , the component: ', this.component.innerHTML);
+      this.eventBus.dispatch(BusEventTypes.showMarkdown, { show: true });
     };
 
     const handleTab = (isInside: boolean) => {
@@ -108,7 +149,6 @@ export class ParagraphComponent extends BlockComponent {
 
   private parseAnchor() {
     this.eventBus.dispatch(BusEventTypes.parseAnchor, {}, true);
-
   }
 
   public getMarkdown() {
@@ -125,7 +165,6 @@ export class ParagraphComponent extends BlockComponent {
   }
 
   private onChildEnter(key: string, _cur?: DefaultDataItem, _next?: DefaultDataItem) {
-    console.log(_cur, _next);
     if (!this.mounted) throw new Error('unmounted component cannot use this function');
     const index = this.findChildIndex(key);
     const curDataList = componentsToDataList(this.childList.slice(0, index) as InlineComponent[]);
@@ -142,9 +181,6 @@ export class ParagraphComponent extends BlockComponent {
     const newList = this.childList.slice();
     newList.splice(index, 1);
     this.setChildList(newList);
-    if (!this.childList.length) {
-      this.destroy();
-    }
 
     // this.component.removeChild(this.component.childNodes[index]);
   }
@@ -184,10 +220,43 @@ export class ParagraphComponent extends BlockComponent {
     result.mount({
       handleInsertSiblings: this.blockMountProps!.handleInsertSiblings,
       handleEnter: this.blockMountProps!.handleEnter,
-      handleTab: this.blockMountProps!.handleTab
+      handleTab: this.blockMountProps!.handleTab,
+      handleDestroy: this.blockMountProps!.handleDestroy
     });
     return result;
   }
+
+  public setAnchor(offset: number) {
+    const selection = document.getSelection();
+    if (offset === 0) {
+      selection?.collapse(this.component, 0);
+    } else if (offset === -1) {
+      selection?.collapse(this.component);
+    }
+  }
+
+  public getPosition = (): [number, number] => {
+    return [this.component.clientTop, this.component.clientHeight + this.component.clientTop];
+  };
+
+  public detectAnchor = (): boolean => {
+    const selection = document.getSelection();
+    if (this.component.contains(selection?.anchorNode || null)) {
+      if (!this.showMarkdown) {
+        this.showMarkdown = true;
+        this.eventBus.dispatch(BusEventTypes.showMarkdown, { show: true });
+      }
+      return true;
+    }
+    // eslint-disable-next-line
+    else {
+      if (this.showMarkdown) {
+        this.showMarkdown = false;
+        this.eventBus.dispatch(BusEventTypes.showMarkdown, { show: false });
+      }
+      return false;
+    }
+  };
 
 }
 
@@ -198,8 +267,10 @@ export interface State {
 export interface ParagraphProps {
   id: string;
   childList: DefaultDataItem[];
+  focusManager: FocusManager;
   handleTab: (key: string, isInside: boolean) => void,
   handleInsertSiblings: (key: string, childList: DefaultDataItem[], replace: boolean) => void;
+  handleDestroy: (key: string) => void;
 }
 
 class Paragraph extends React.Component<ParagraphProps, State> {
@@ -212,7 +283,7 @@ class Paragraph extends React.Component<ParagraphProps, State> {
   constructor(props: ParagraphProps) {
     super(props);
     this.ref = React.createRef();
-    const { handleTab, handleInsertSiblings, childList, id } = props;
+    const { handleTab, handleInsertSiblings, handleDestroy, focusManager, childList, id } = props;
     this.key = id;
     const onParagraphInsertSibling = (sibling: DefaultDataItem, replace: boolean) => {
       handleInsertSiblings(this.key, [sibling], replace);
@@ -226,11 +297,15 @@ class Paragraph extends React.Component<ParagraphProps, State> {
       handleTab(this.key, isInside);
     };
 
+    const onDestroy = () => {
+      handleDestroy(this.key);
+    };
+
     this.target = new ParagraphComponent({
       type: BlockStyleTypes.paragragh, childList: dataListToComponents(childList)
     });
-    this.target.mount({ handleInsertSiblings: onParagraphInsertSibling, handleEnter: onEnter, handleTab: onTab });
-
+    this.target.mount({ handleInsertSiblings: onParagraphInsertSibling, handleEnter: onEnter, handleTab: onTab, handleDestroy: onDestroy });
+    focusManager.register(this.key, this.target.getPosition, this.target.detectAnchor);
   }
 
   componentDidMount() {

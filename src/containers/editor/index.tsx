@@ -1,20 +1,20 @@
 import React, { useEffect, useRef } from 'react';
 import './style.scss';
 import Intendentation from 'component/Stable/Indentation';
-import { BlockStyleTypes, InlineStyleTypes } from 'types/ComponentTypes';
-import Strong from 'component/Inline/Strong';
+import FocusManager from 'utils/FocusManager';
 
 export interface EditorProps {
 
 }
 const Editor: React.FC<EditorProps> = () => {
   const ref = useRef<HTMLDivElement>(null);
+  const focusManager = new FocusManager({ rootRef: ref });
   useEffect(() => {
-    const editor = ref.current;
+    focusManager.init();
   }, []);
   return (
     <div className='editor-wrapper' ref={ref}>
-      <Intendentation id='initIndentation' childList={[]} depth={0} handleInsertSiblings={() => { }}  />
+      <Intendentation id='initIndentation' childList={[]} depth={0} handleInsertSiblings={() => { }} handleDestroy={() => { }} focusManager={focusManager} />
     </div>
   );
 };

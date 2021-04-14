@@ -3,7 +3,7 @@ import { BusEventTypes } from 'component/EventBus';
 import InlineComponent, { InlineMountProps } from '../InlineComponent';
 
 interface WbrProps extends DefaultComponentProps {
-  
+
 }
 
 export default class Wbr extends InlineComponent {
@@ -30,6 +30,12 @@ export default class Wbr extends InlineComponent {
     });
     this.inlineMountProps.eventBus.subscribe(BusEventTypes.parseAnchor, this.key, () => {
       const selection = document.getSelection();
+      let cur: Element = this.component;
+      while (cur && !cur.nextSibling) {
+        if (cur.parentNode?.nodeName === 'P') break;
+        cur = cur.parentNode as Element;
+      }
+      cur.insertAdjacentText('afterend', '\u200B');
       selection!.collapse(this.component);
       this.destroy();
     });

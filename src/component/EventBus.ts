@@ -2,10 +2,11 @@ export enum BusEventTypes {
   refresh = 'refresh',
   recordAnchor = 'recordAnchor',
   parseAnchor = 'parseAnchor',
-  displayState = 'displayState',
+  showMarkdown = 'showMarkdown',
   selectState = 'selectState',
   findEnterAnchor = 'findEnterAnchor',
-  deleteEmpty = 'deleteEmpty'
+  deleteEmpty = 'deleteEmpty',
+  insertSiblingParagraph = 'insertSiblingParagraph'
 }
 
 export type TaskList = Array<{
