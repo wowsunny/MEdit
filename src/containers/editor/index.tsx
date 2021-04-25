@@ -12,9 +12,10 @@ const Editor: React.FC<EditorProps> = () => {
   useEffect(() => {
     focusManager.init();
   }, []);
+  const stableValues = { childList: [], focusManager, handleInsertSiblings: () => { }, handleDestroy: () => { } };
   return (
     <div className='editor-wrapper' ref={ref}>
-      <Intendentation id='initIndentation' childList={[]} depth={0} handleInsertSiblings={() => { }} handleDestroy={() => { }} focusManager={focusManager} />
+      <Intendentation id='initIndentation' depth={0} stableValues={stableValues} />
     </div>
   );
 };

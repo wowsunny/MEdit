@@ -10,12 +10,12 @@ export default class FocusManager {
 
   private inited: boolean = false;
 
-  public componentList: { key: string, getPosition: () => [number, number], detectAnchor: () => boolean }[];
+  public componentList: { key: string, detectAnchor: () => boolean }[];
 
   constructor(props: FocusManagerProps) {
     const { rootRef } = props;
     this.rootRef = rootRef;
-    // just BlockComponent
+    // just EditableBlock
     this.componentList = [];
     this.init();
   }
@@ -46,8 +46,8 @@ export default class FocusManager {
 
   }
 
-  public register(key: string, getPosition: () => [number, number], detectAnchor: () => boolean) {
-    this.componentList.push({ key, getPosition, detectAnchor });
+  public register(key: string, detectAnchor: () => boolean) {
+    this.componentList.push({ key, detectAnchor });
     this.reRank();
   }
 

@@ -31,8 +31,4 @@ export default class Del extends InlineComponent {
       return pre + (cur as InlineComponent).getContent();
     }, '');
   }
-
-  public clone(childList: InlineComponent[]): Del {
-    return new Del({ type: InlineStyleTypes.del, childList });
-  }
 }

@@ -6,7 +6,7 @@ export enum BusEventTypes {
   selectState = 'selectState',
   findEnterAnchor = 'findEnterAnchor',
   deleteEmpty = 'deleteEmpty',
-  insertSiblingParagraph = 'insertSiblingParagraph'
+  insertSibling = 'insertSibling'
 }
 
 export type TaskList = Array<{

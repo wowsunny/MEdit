@@ -31,8 +31,4 @@ export default class Strong extends InlineComponent {
       this.component.appendChild(child.component);
     });
   }
-
-  public clone(childList: InlineComponent[]): Strong {
-    return new Strong({ type: InlineStyleTypes.strong, childList });
-  }
 }

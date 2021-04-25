@@ -31,8 +31,4 @@ export default class Highlight extends InlineComponent {
       return pre + (cur as InlineComponent).getContent();
     }, '');
   }
-
-  public clone(childList: InlineComponent[]): Highlight {
-    return new Highlight({ type: InlineStyleTypes.highlight, childList });
-  }
 }

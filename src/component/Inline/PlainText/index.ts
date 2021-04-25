@@ -58,10 +58,12 @@ export default class PlainText extends InlineComponent {
       }
       return false;
     });
+
     eventBus.subscribe(BusEventTypes.deleteEmpty, this.key, () => {
       if (document.contains(this.component)) return;
       this.destroy();
     });
+
     eventBus.subscribe(BusEventTypes.findEnterAnchor, this.key, () => {
       const selection = document.getSelection();
       const content = this.getContent();
@@ -86,8 +88,9 @@ export default class PlainText extends InlineComponent {
             content: this.getContent().slice(offset)
           });
       }
+      // TODO 这里只针对paragraph进行设计，需要进行拓充
       else if (selection?.anchorNode?.nodeName === 'P') {
-        this.inlineMountProps?.eventBus.dispatch(BusEventTypes.insertSiblingParagraph);
+        this.inlineMountProps?.eventBus.dispatch(BusEventTypes.insertSibling);
       }
     });
 
@@ -114,7 +117,7 @@ export default class PlainText extends InlineComponent {
     this.setContent(curContent.replace(/\s/g, '&nbsp;'));
     const wbr = new Wbr({ type: InlineStyleTypes.wbr, childList: [] });
     if (nextContent.length) {
-      const sibling = this.clone([], nextContent.replace(/\s/g, '&nbsp;'));
+      const sibling = new PlainText({ type: InlineStyleTypes.plainText, childList: [], content: nextContent.replace(/\s/g, '&nbsp;') });
       this.inlineMountProps!.handleInsertSibling(this.key, [wbr, sibling], !(curContent.length));
     } else {
       this.inlineMountProps!.handleInsertSibling(this.key, [wbr], !(curContent.length));
@@ -129,9 +132,5 @@ export default class PlainText extends InlineComponent {
       return;
     }
     selection?.collapse(this.component, offset);
-  }
-
-  public clone(childList: InlineComponent[], content: string): PlainText {
-    return new PlainText({ type: this.type, childList: [], content });
   }
 }

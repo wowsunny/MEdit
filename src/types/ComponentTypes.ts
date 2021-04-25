@@ -13,6 +13,7 @@ export enum BlockStyleTypes {
   paragragh = 'paragraph',
   codeBlock = 'codeblock',
   list = 'list',
+  li = 'li',
   indentation = 'indentation',
   table = 'table'
 }
@@ -25,7 +26,7 @@ export interface DefaultDataItem {
   childList: DefaultDataItem[];
   content?: string;
   tableData?: Array<DefaultDataItem[]>;
-  listData?: Array<DefaultDataItem>;
+  listData?: Array<DefaultDataItem[]>;
   imgData?: string;
   headerLevel?: HeaderLevelType;
 

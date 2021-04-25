@@ -34,8 +34,4 @@ export default class Em extends InlineComponent {
       this.component.appendChild(child.component);
     });
   }
-
-  public clone(childList: InlineComponent[]): Em {
-    return new Em({ type: InlineStyleTypes.em, childList });
-  }
 }

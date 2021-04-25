@@ -1,6 +1,7 @@
 export interface EventManagerProps {
   target: Element;
   handleEnter: () => void;
+  handleCtrlEnter: () => void;
   handleDelete: (isKeyDown: boolean) => void;
   handleReParse: () => void;
   handleTab: (isInside: boolean) => void;
@@ -17,6 +18,8 @@ export default class EventManager {
 
   onEnter: () => void;
 
+  onCtrlEnter: () => void;
+
   onDelete: (isKeyDown: boolean) => void;
 
   reParse: () => void;
@@ -26,9 +29,10 @@ export default class EventManager {
   onTab: (isInside: boolean) => void;
 
   constructor(props: EventManagerProps) {
-    const { target, handleEnter, handleDelete, handleReParse, handleTab } = props;
+    const { target, handleEnter, handleCtrlEnter, handleDelete, handleReParse, handleTab } = props;
     this.target = target;
     this.onEnter = handleEnter;
+    this.onCtrlEnter = handleCtrlEnter;
     this.onDelete = handleDelete;
     this.reParse = handleReParse;
     this.onTab = handleTab;
@@ -53,15 +57,16 @@ export default class EventManager {
         this.onDelete(true);
 
       } else if (e.code === 'Enter') {
-        this.onEnter();
         e.preventDefault();
+        if (this.isCtrlPress) this.onCtrlEnter();
+        else this.onEnter();
       } else if (e.code === 'Tab') {
         e.preventDefault();
         e.stopPropagation();
         this.onTab(!this.isShiftPress);
       }
     });
-    
+
     this.target.addEventListener('input', (e: InputEventInit) => {
       if (e.inputType?.match(/insert/)) {
         this.isInputing = true;
@@ -78,9 +83,9 @@ export default class EventManager {
       this.isComposing = false;
     });
     this.target.addEventListener('keyup', (e: any) => {
-      if (e.code === 'Ctrl') {
+      if (e.code === 'ControlLeft') {
         this.isCtrlPress = false;
-      } else if (e.code === 'Shift') {
+      } else if (e.code === 'ShiftLeft') {
         this.isShiftPress = false;
       }
 
