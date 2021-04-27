@@ -1,0 +1,33 @@
+.em-mark::before{
+  content: '*';
+  color: #bbb;
+}
+
+.em-mark::after{
+  content: '*';
+  color: #bbb;
+}
+.strong-mark::before{
+  content: '**';
+  color: #bbb;
+}
+.strong-mark::after{
+  content: '**';
+  color: #bbb;
+}
+.del-mark::before{
+  content: '~~';
+  color: #bbb;
+}
+.del-mark::after{
+  content: '~~';
+  color: #bbb;
+}
+.highlight-mark::before{
+  content: '==';
+  color: #bbb;
+}
+.highlight-mark::after{
+  content: '==';
+  color: #bbb;
+}
