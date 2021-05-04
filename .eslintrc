@@ -46,6 +46,7 @@
     "react/no-access-state-in-setstate": "off",
     "@typescript-eslint/brace-style": "off",
     "@typescript-eslint/naming-convention": "off",
+    "react/prefer-stateless-function": "off",
     "no-underscore-dangle": "off",
     "prefer-destructuring": "off",
     "no-plusplus": [

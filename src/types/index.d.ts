@@ -5,3 +5,7 @@ enum FontColor {
   fontBlack = 'FONTBLACK',
   fontBlue = 'FONTBLUE'
 }
+
+export enum DragTypes {
+  BlockComponent = 'BLOCKCOMPONENT'
+}

@@ -5,6 +5,7 @@ import { RefObject } from 'react';
 import { BlockStyleTypes, DefaultDataItem, InlineStyleTypes } from 'types/ComponentTypes';
 import { dataListToComponents } from 'utils/dataToComponent';
 import FocusManager from 'utils/FocusManager';
+import dndWrapper from '../dndWrapper';
 import EditableBlock from '../EditableBlock';
 
 export class LiComponent extends EditableBlock {
@@ -44,13 +45,18 @@ export class LiComponent extends EditableBlock {
 export interface ListProps {
   id: string;
   listData?: Array<DefaultDataItem[]>;
-  stableValues: {
+  mountValues: {
     childList: DefaultDataItem[];
     focusManager: FocusManager;
     handleTab: (key: string, isInside: boolean) => void,
     handleInsertSiblings: (key: string, childList: DefaultDataItem[], replace: boolean) => void;
     handleDestroy: (key: string) => void;
-  }
+  };
+  dndValues: {
+    findIndex: (key: string) => number;
+    dndMove: (sourceKey: string, targetIndex: number) => void;
+  };
+  [propName: string]: any;
 }
 
 class List extends React.Component<ListProps> {
@@ -65,7 +71,7 @@ class List extends React.Component<ListProps> {
   constructor(props: ListProps) {
     super(props);
     console.log(props);
-    const { id, listData, stableValues } = props;
+    const { id, listData } = props;
     this.key = id;
     this.ref = React.createRef();
     this.listData = listData || [];
@@ -107,8 +113,8 @@ class List extends React.Component<ListProps> {
   // listData -> childList -> DOM
   private constructChildList() {
     this.listData = this.listData.length ? this.listData : [[{ type: InlineStyleTypes.plainText, content: '', childList: [] }]];
-    const { stableValues } = this.props;
-    const { focusManager, handleTab, handleInsertSiblings, handleDestroy } = stableValues;
+    const { mountValues } = this.props;
+    const { focusManager, handleTab, handleInsertSiblings, handleDestroy } = mountValues;
 
     const onChildAddListItem = (key: string, data: DefaultDataItem[]) => {
       const index = this.findChildIndex(key);
@@ -154,12 +160,20 @@ class List extends React.Component<ListProps> {
   }
 
   render() {
-    return (
-      <div className='list'>
-        <ul ref={this.ref} dangerouslySetInnerHTML={{ __html: '' }} />
-      </div>
+    const {
+      isDragging, connectDragSource, connectDragPreview, connectDropTarget
+    } = this.props;
+    return connectDropTarget(
+      connectDragPreview(
+        <div className='blockWrapper'>
+          {connectDragSource(<div className='dragIcon'>::</div>)}
+          <div className='list'>
+            <ul ref={this.ref} style={{ opacity: isDragging ? 0.5 : 1 }} dangerouslySetInnerHTML={{ __html: '' }} />
+          </div>
+        </div>
+      )
     );
   }
 }
 
-export default List;
+export default dndWrapper<ListProps>(List);

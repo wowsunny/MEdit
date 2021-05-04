@@ -1,7 +1,8 @@
+import * as React from 'react';
 import List from 'component/Block/List';
 import Paragraph from 'component/Block/Paragraph';
 import DefaultComponent from 'component/DefaultComponent';
-import * as React from 'react';
+import { DropTarget } from 'react-dnd';
 import { BlockStyleTypes, DefaultDataItem, InlineStyleTypes } from 'types/ComponentTypes';
 import FocusManager from 'utils/FocusManager';
 import getKey from 'utils/getKey';
@@ -10,12 +11,17 @@ import './style.scss';
 export interface IndentationProps {
   id: string;
   depth: number;
-  stableValues: {
+  mountValues: {
     childList: DefaultDataItem[];
     focusManager: FocusManager;
     handleInsertSiblings: (key: string, siblings: DefaultDataItem[], replace: boolean) => void;
     handleDestroy: (key: string) => void;
+  };
+  dndValues: {
+    findIndex: (key: string) => number;
+    dndMove: (sourceKey: string, targetIndex: number) => void;
   }
+  [propName: string]: any;
 }
 
 interface IndentationDataItem extends DefaultDataItem {
@@ -43,21 +49,24 @@ class Indentation extends React.Component<IndentationProps, IndentationState> {
 
   constructor(props: IndentationProps) {
     super(props);
-    const { depth, id, stableValues } = props;
-    const { childList, handleInsertSiblings, handleDestroy, focusManager } = stableValues;
+    const { depth, id, mountValues } = props;
+    const { childList, handleInsertSiblings, handleDestroy, focusManager } = mountValues;
     this.key = id;
     this.focusManager = focusManager;
     this.state = {
-      dataList: childList.length ? childList.map(child => ({
+      dataList: childList.map(child => ({
         key: child.key || getKey(child.type),
         type: child.type,
         childList: child.childList
-      })) : [{ key: getKey(BlockStyleTypes.paragragh), type: BlockStyleTypes.paragragh, childList: [] }],
+      })),
       refresh: true
     };
     this.depth = depth;
     this.handleInsertSibling = handleInsertSiblings;
     this.handleDestroy = handleDestroy;
+    this.findChildIndex = this.findChildIndex.bind(this);
+    this.dndMove = this.dndMove.bind(this);
+    this.getDataList = this.getDataList.bind(this);
     this.onChildInsertSibling = this.onChildInsertSibling.bind(this);
     this.onChildDestroy = this.onChildDestroy.bind(this);
     this.onChildTab = this.onChildTab.bind(this);
@@ -69,8 +78,11 @@ class Indentation extends React.Component<IndentationProps, IndentationState> {
     if (state.refresh) {
       return { refresh: false };
     }
-    const curDataList = state.dataList;
-    const nextDataList = nextProps.stableValues.childList;
+    console.log('here');
+    const curDataList = state.dataList.length ? state.dataList :
+      [{ key: getKey(BlockStyleTypes.paragragh), type: BlockStyleTypes.paragragh, childList: [] }];
+    const nextDataList = nextProps.mountValues.childList;
+    if (!nextDataList.length) return { dataList: curDataList };
     const func = (cur: DefaultDataItem[], next: DefaultDataItem[]): boolean => {
       if (cur.length !== next.length) return false;
       return cur.every((item, index) => {
@@ -180,8 +192,13 @@ class Indentation extends React.Component<IndentationProps, IndentationState> {
   public getDataList() {
     const dataList = this.state.dataList.slice();
     dataList.forEach(data => {
-      // eslint-disable-next-line
-      data.childList = data.ref?.current.getDataList();
+      try {
+        // TODO 解决一下这里
+        // eslint-disable-next-line
+        data.childList = data.ref?.current.decoratedRef.current.decoratedRef.current.decoratedRef.current.getDataList();
+      } catch (e) {
+        debugger;
+      }
     });
     return dataList;
   }
@@ -206,45 +223,57 @@ class Indentation extends React.Component<IndentationProps, IndentationState> {
     this.handleDestroy(this.key);
   }
 
-  render() {
-    return (
-      <div className='indentation'>{this.state.dataList.map(data => {
-        if (!data.ref)
-          // eslint-disable-next-line
-          data.ref = React.createRef();
-        const stableValus = {
-          childList: data.childList,
-          focusManager: this.focusManager,
-          handleInsertSiblings: this.onChildInsertSibling,
-          handleTab: this.onChildTab,
-          handleDestroy: this.onChildDestroy,
-        };
+  private dndMove(key: string, toIndex: number) {
+    const dataList = this.getDataList();
+    const index = this.findChildIndex(key);
+    if (index === toIndex) return;
+    const item = dataList.splice(index, 1);
+    dataList.splice(toIndex, 0, item[0]);
+    this.setState({ dataList });
+  }
 
-        switch (data.type) {
-          case BlockStyleTypes.paragragh:
-            return <Paragraph ref={data.ref} key={data.key} id={data.key} stableValues={stableValus} />;
-          // case BlockStyleTypes.heading:
-          //   return <Header level={data.headerLevel || 1} handleInsertParagraph={this.onChildInsertSibling} content={data.content} />;
-          case BlockStyleTypes.indentation:
-            return <Indentation ref={data.ref} key={data.key} id={data.key} depth={this.depth + 1} stableValues={stableValus} />;
-          // case BlockStyleTypes.codeBlock:
-          //   return <CodeBlock handleInsertParagraph={this.onChildInsertSibling} content={data.content} />;
-          case BlockStyleTypes.list: {
-            const listData = data.listData?.length ? data.listData : data.childList;
-            console.log(listData);
-            return <List ref={data.ref} key={data.key} id={data.key} listData={listData as any} stableValues={stableValus} />;
-          }
-          // case BlockStyleTypes.table:
-          //   return <Table handleInsertParagraph={this.onChildInsertSibling} tableData={data.tableData} />;
-          default:
-            debugger;
-            throw new Error('unexpected case');
-            break;
-        }
-      })}
+  render() {
+    const { connectDropTarget } = this.props;
+    return connectDropTarget(
+      <div className='indentation'>{
+        this.state.dataList
+          .map(data => {
+            if (!data.ref)
+              // eslint-disable-next-line
+              data.ref = React.createRef();
+            const mountValues = {
+              childList: data.childList,
+              focusManager: this.focusManager,
+              handleInsertSiblings: this.onChildInsertSibling,
+              handleTab: this.onChildTab,
+              handleDestroy: this.onChildDestroy,
+            };
+            const dndValues = {
+              findIndex: this.findChildIndex,
+              dndMove: this.dndMove
+            };
+
+            switch (data.type) {
+              case BlockStyleTypes.paragragh:
+                return <Paragraph ref={data.ref} key={data.key} id={data.key} mountValues={mountValues} dndValues={dndValues} />;
+              case BlockStyleTypes.indentation:
+                return <DndIndentation ref={data.ref} key={data.key} id={data.key} depth={this.depth + 1} mountValues={mountValues} dndValues={dndValues} />;
+              case BlockStyleTypes.list: {
+                const listData = data.listData?.length ? data.listData : data.childList;
+                return <List ref={data.ref} key={data.key} id={data.key} listData={listData as any} mountValues={mountValues} dndValues={dndValues} />;
+              }
+              default:
+                throw new Error('unexpected case');
+            }
+          })
+      }
       </div>
     );
   }
 }
 
-export default Indentation;
+const DndIndentation = DropTarget('test', {}, connect => ({
+  connectDropTarget: connect.dropTarget()
+}))(Indentation);
+
+export default DndIndentation;
