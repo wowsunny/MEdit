@@ -7,6 +7,8 @@ import { dataListToComponents } from 'utils/dataToComponent';
 import FocusManager from 'utils/FocusManager';
 import dndWrapper from '../dndWrapper';
 import EditableBlock from '../EditableBlock';
+import { defaultBlockProps } from '../types';
+import './style.scss';
 
 export class LiComponent extends EditableBlock {
   constructor(props: DefaultComponentProps) {
@@ -42,20 +44,8 @@ export class LiComponent extends EditableBlock {
 
 }
 
-export interface ListProps {
-  id: string;
+export interface ListProps extends defaultBlockProps {
   listData?: Array<DefaultDataItem[]>;
-  mountValues: {
-    childList: DefaultDataItem[];
-    focusManager: FocusManager;
-    handleTab: (key: string, isInside: boolean) => void,
-    handleInsertSiblings: (key: string, childList: DefaultDataItem[], replace: boolean) => void;
-    handleDestroy: (key: string) => void;
-  };
-  dndValues: {
-    findIndex: (key: string) => number;
-    dndMove: (sourceKey: string, targetIndex: number) => void;
-  };
   [propName: string]: any;
 }
 
@@ -131,8 +121,14 @@ class List extends React.Component<ListProps> {
       handleTab(this.key, isInside);
     };
 
-    const onDestroy = () => {
-      handleDestroy(this.key);
+    const onDestroy = (index: number) => {
+      this.listData.splice(index, 1);
+      if (!this.listData.length) {
+        handleDestroy(this.key);
+        return;
+      }
+      this.constructChildList();
+      this.refresh();
     };
 
     const onInsertSibling = (sibling: DefaultDataItem, replace: boolean) => {
@@ -140,10 +136,10 @@ class List extends React.Component<ListProps> {
     };
 
     this.childList = [];
-    this.listData.forEach(data => {
+    this.listData.forEach((data, index) => {
       const childTarget = new LiComponent({ type: BlockStyleTypes.li, childList: dataListToComponents(data) });
       this.childList.push(childTarget);
-      childTarget.mount({ handleInsertSiblings: onInsertSibling, handleEnter: onEnter, handleTab: onTab, handleDestroy: onDestroy });
+      childTarget.mount({ handleInsertSiblings: onInsertSibling, handleEnter: onEnter, handleTab: onTab, handleDestroy: () => onDestroy(index) });
       focusManager.register(this.key, childTarget.detectAnchor);
       this.refresh();
     });

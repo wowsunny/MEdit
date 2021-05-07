@@ -3,11 +3,10 @@ import DefaultComponent, { DefaultComponentProps } from 'component/DefaultCompon
 import PlainText from 'component/Inline/PlainText';
 import { BlockStyleTypes, DefaultDataItem, InlineStyleTypes } from 'types/ComponentTypes';
 import { dataListToComponents } from 'utils/dataToComponent';
-import FocusManager from 'utils/FocusManager';
-import { DropTarget, DragSource, DropTargetConnector, DropTargetMonitor, DropTargetSpec, DragSourceCollector, DragSourceMonitor } from 'react-dnd';
 import EditableBlock from '../EditableBlock';
 import dndWrapper from '../dndWrapper';
 import './style.scss';
+import { defaultBlockProps } from '../types';
 
 export class ParagraphComponent extends EditableBlock {
   constructor(props: DefaultComponentProps) {
@@ -43,19 +42,7 @@ export class ParagraphComponent extends EditableBlock {
 }
 
 
-export interface ParagraphProps {
-  id: string;
-  mountValues: {
-    childList: DefaultDataItem[];
-    focusManager: FocusManager;
-    handleTab: (key: string, isInside: boolean) => void,
-    handleInsertSiblings: (key: string, childList: DefaultDataItem[], replace: boolean) => void;
-    handleDestroy: (key: string) => void;
-  };
-  dndValues: {
-    findIndex: (key: string) => number;
-    dndMove: (sourceKey: string, targetIndex: number) => void;
-  }
+export interface ParagraphProps extends defaultBlockProps {
   [propName: string]: any;
 }
 
@@ -85,6 +72,7 @@ class Paragraph extends React.Component<ParagraphProps> {
     };
 
     const onDestroy = () => {
+      console.log('destroy!!!!!!!!!!!!!!!!!!!!!');
       handleDestroy(this.key);
     };
 

@@ -7,20 +7,10 @@ import { BlockStyleTypes, DefaultDataItem, InlineStyleTypes } from 'types/Compon
 import FocusManager from 'utils/FocusManager';
 import getKey from 'utils/getKey';
 import './style.scss';
+import { defaultBlockProps } from 'component/Block/types';
 
-export interface IndentationProps {
-  id: string;
+export interface IndentationProps extends defaultBlockProps {
   depth: number;
-  mountValues: {
-    childList: DefaultDataItem[];
-    focusManager: FocusManager;
-    handleInsertSiblings: (key: string, siblings: DefaultDataItem[], replace: boolean) => void;
-    handleDestroy: (key: string) => void;
-  };
-  dndValues: {
-    findIndex: (key: string) => number;
-    dndMove: (sourceKey: string, targetIndex: number) => void;
-  }
   [propName: string]: any;
 }
 
@@ -67,6 +57,7 @@ class Indentation extends React.Component<IndentationProps, IndentationState> {
     this.findChildIndex = this.findChildIndex.bind(this);
     this.dndMove = this.dndMove.bind(this);
     this.getDataList = this.getDataList.bind(this);
+    this.getDataItem = this.getDataItem.bind(this);
     this.onChildInsertSibling = this.onChildInsertSibling.bind(this);
     this.onChildDestroy = this.onChildDestroy.bind(this);
     this.onChildTab = this.onChildTab.bind(this);
@@ -78,7 +69,6 @@ class Indentation extends React.Component<IndentationProps, IndentationState> {
     if (state.refresh) {
       return { refresh: false };
     }
-    console.log('here');
     const curDataList = state.dataList.length ? state.dataList :
       [{ key: getKey(BlockStyleTypes.paragragh), type: BlockStyleTypes.paragragh, childList: [] }];
     const nextDataList = nextProps.mountValues.childList;
@@ -189,13 +179,28 @@ class Indentation extends React.Component<IndentationProps, IndentationState> {
     }
   }
 
+  private getChildChildList(index: number) {
+    const child = this.state.dataList[index];
+    if (child.type === BlockStyleTypes.indentation) {
+      return (child.ref!.current as Indentation).getDataList();
+    }
+    return child.ref?.current.decoratedRef.current.decoratedRef.current.decoratedRef.current.getDataList();
+  }
+
+  private getDataItem(key: string) {
+    const index = this.state.dataList.findIndex((item => item.key === key));
+    const data = this.state.dataList.slice(index, index + 1)[0];
+    data.childList = this.getChildChildList(index);
+    return data;
+  }
+
   public getDataList() {
     const dataList = this.state.dataList.slice();
-    dataList.forEach(data => {
+    dataList.forEach((data, index) => {
       try {
         // TODO 解决一下这里
         // eslint-disable-next-line
-        data.childList = data.ref?.current.decoratedRef.current.decoratedRef.current.decoratedRef.current.getDataList();
+        data.childList = this.getChildChildList(index);
       } catch (e) {
         debugger;
       }
@@ -225,15 +230,15 @@ class Indentation extends React.Component<IndentationProps, IndentationState> {
 
   private dndMove(key: string, toIndex: number) {
     const dataList = this.getDataList();
-    const index = this.findChildIndex(key);
-    if (index === toIndex) return;
-    const item = dataList.splice(index, 1);
-    dataList.splice(toIndex, 0, item[0]);
-    this.setState({ dataList });
+    dataList.splice(toIndex + 1, 0, dataList[this.findChildIndex(key)]);
+    dataList.splice(this.findChildIndex(key), 1);
+    console.log(dataList);
+    this.setState({ dataList, refresh: true });
   }
 
   render() {
     const { connectDropTarget } = this.props;
+    console.log(this.state.dataList);
     return connectDropTarget(
       <div className='indentation'>{
         this.state.dataList
@@ -249,6 +254,8 @@ class Indentation extends React.Component<IndentationProps, IndentationState> {
               handleDestroy: this.onChildDestroy,
             };
             const dndValues = {
+              indentationKey: this.key,
+              getDataItem: this.getDataItem,
               findIndex: this.findChildIndex,
               dndMove: this.dndMove
             };
@@ -272,7 +279,7 @@ class Indentation extends React.Component<IndentationProps, IndentationState> {
   }
 }
 
-const DndIndentation = DropTarget('test', {}, connect => ({
+const DndIndentation = DropTarget('drag', {}, connect => ({
   connectDropTarget: connect.dropTarget()
 }))(Indentation);
 

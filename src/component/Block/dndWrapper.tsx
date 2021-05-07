@@ -3,31 +3,22 @@ import { DefaultDataItem } from 'types/ComponentTypes';
 import FocusManager from 'utils/FocusManager';
 import { DragSourceMonitor, DropTargetMonitor, DropTargetConnector, DragSource, DropTarget } from 'react-dnd';
 import './style.scss';
+import { defaultBlockProps } from './types';
 
 export interface DndWrapperProps {
   [propName: string]: any;
 }
 
-export interface ComponentPropsType {
-  id: string;
-  mountValues: {
-    childList: DefaultDataItem[];
-    focusManager: FocusManager;
-    handleTab: (key: string, isInside: boolean) => void,
-    handleInsertSiblings: (key: string, childList: DefaultDataItem[], replace: boolean) => void;
-    handleDestroy: (key: string) => void;
-  };
-  dndValues: {
-    findIndex: (key: string) => number;
-    dndMove: (sourceKey: string, targetIndex: number) => void;
-  }
+export interface ComponentPropsType extends defaultBlockProps {
+
 }
 
 const dragSpec = {
   // 拖动开始时，返回描述 source 数据。后续通过 monitor.getItem() 获得
   beginDrag: (props: ComponentPropsType) => ({
     id: props.id,
-    originalIndex: props.dndValues.findIndex(props.id)
+    originalIndex: props.dndValues.findIndex(props.id),
+    originalIndentationKey: props.dndValues.indentationKey
   }),
   // 拖动停止时，处理 source 数据
   endDrag(props: ComponentPropsType, monitor: DragSourceMonitor) {
@@ -47,9 +38,13 @@ const dragCollect = (connect: any, monitor: DragSourceMonitor) => ({
 const dropSpec = {
   canDrop: () => false, // item 不处理 drop
   hover(props: ComponentPropsType, monitor: DropTargetMonitor) {
-    const { id: draggedId } = monitor.getItem();
-    const { id: overId } = props;
-    // 如果 source item 与 target item 不同，则交换位置并重新排序
+    const { id: draggedId, originalIndentationKey } = monitor.getItem();
+    const { id: overId, dndValues } = props;
+    const { indentationKey } = dndValues;
+    // 若从属于不同的indentation，不操作
+    if (indentationKey !== originalIndentationKey) {
+      return; 
+    }
     if (draggedId !== overId) {
       const overIndex = props.dndValues.findIndex(overId);
       props.dndValues.dndMove(draggedId, overIndex);
@@ -61,12 +56,12 @@ const dropCollect = (connect: DropTargetConnector, monitor: DropTargetMonitor) =
 });
 
 const dndWrapper = <ComponentProps extends ComponentPropsType>(Component: React.ComponentType<ComponentProps>) =>
-  DropTarget('test', dropSpec, dropCollect)(
-    DragSource('test', dragSpec, dragCollect)(
+  DropTarget('drag', dropSpec, dropCollect)(
+    DragSource('drag', dragSpec, dragCollect)(
       class DndWrapper extends React.Component<ComponentPropsType & DndWrapperProps> {
         decoratedRef: React.RefObject<any>;
 
-        constructor(props: ComponentPropsType & DndWrapperProps){
+        constructor(props: ComponentPropsType & DndWrapperProps) {
           super(props);
           this.decoratedRef = React.createRef();
         }
