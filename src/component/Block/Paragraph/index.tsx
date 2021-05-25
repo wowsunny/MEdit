@@ -2,7 +2,7 @@ import React, { RefObject } from 'react';
 import DefaultComponent, { DefaultComponentProps } from 'component/DefaultComponent';
 import PlainText from 'component/Inline/PlainText';
 import { BlockStyleTypes, DefaultDataItem, InlineStyleTypes } from 'types/ComponentTypes';
-import { dataListToComponents } from 'utils/dataToComponent';
+import { dataListToComponents } from 'utils/editorTools/dataToComponent';
 import EditableBlock from '../EditableBlock';
 import dndWrapper from '../dndWrapper';
 import './style.scss';
@@ -93,6 +93,10 @@ class Paragraph extends React.Component<ParagraphProps> {
 
   public getDataList() {
     return this.target.getDataList();
+  }
+
+  public getMarkdown() {
+    return this.target.getMarkdown();
   }
 
   private refresh() {

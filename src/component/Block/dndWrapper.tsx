@@ -1,6 +1,4 @@
 import * as React from 'react';
-import { DefaultDataItem } from 'types/ComponentTypes';
-import FocusManager from 'utils/FocusManager';
 import { DragSourceMonitor, DropTargetMonitor, DropTargetConnector, DragSource, DropTarget } from 'react-dnd';
 import './style.scss';
 import { defaultBlockProps } from './types';

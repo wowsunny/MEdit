@@ -4,17 +4,19 @@ import Paragraph from 'component/Block/Paragraph';
 import DefaultComponent from 'component/DefaultComponent';
 import { DropTarget } from 'react-dnd';
 import { BlockStyleTypes, DefaultDataItem, InlineStyleTypes } from 'types/ComponentTypes';
-import FocusManager from 'utils/FocusManager';
-import getKey from 'utils/getKey';
+import FocusManager from 'utils/editorTools/FocusManager';
+import getKey from 'utils/editorTools/getKey';
 import './style.scss';
 import { defaultBlockProps } from 'component/Block/types';
+import Header from 'component/Block/Header';
+import Quote from 'component/Block/Quote';
 
 export interface IndentationProps extends defaultBlockProps {
   depth: number;
   [propName: string]: any;
 }
 
-interface IndentationDataItem extends DefaultDataItem {
+export interface IndentationDataItem extends DefaultDataItem {
   key: string;
   ref?: React.RefObject<any>;
 }
@@ -57,6 +59,7 @@ class Indentation extends React.Component<IndentationProps, IndentationState> {
     this.findChildIndex = this.findChildIndex.bind(this);
     this.dndMove = this.dndMove.bind(this);
     this.getDataList = this.getDataList.bind(this);
+    this.setDataList = this.setDataList.bind(this);
     this.getDataItem = this.getDataItem.bind(this);
     this.onChildInsertSibling = this.onChildInsertSibling.bind(this);
     this.onChildDestroy = this.onChildDestroy.bind(this);
@@ -182,7 +185,7 @@ class Indentation extends React.Component<IndentationProps, IndentationState> {
   private getChildChildList(index: number) {
     const child = this.state.dataList[index];
     if (child.type === BlockStyleTypes.indentation) {
-      return (child.ref!.current as Indentation).getDataList();
+      return (child.ref!.current.decoratedRef.current as Indentation).getDataList();
     }
     return child.ref?.current.decoratedRef.current.decoratedRef.current.decoratedRef.current.getDataList();
   }
@@ -206,6 +209,20 @@ class Indentation extends React.Component<IndentationProps, IndentationState> {
       }
     });
     return dataList;
+  }
+
+  public setDataList(dataList: IndentationDataItem[]) {
+    this.setState({ dataList });
+  }
+
+  public getMarkdown(): string {
+    return this.state.dataList.map(child => {
+      if (child.type === BlockStyleTypes.indentation) {
+        return (child.ref!.current.decoratedRef.current as Indentation).getMarkdown();
+      }
+      console.log(child.type);
+      return child.ref!.current.decoratedRef.current.decoratedRef.current.decoratedRef.current.getMarkdown();
+    }).join('\n');
   }
 
   public InsertChildren(children: DefaultComponent[], offset: number = 0) {
@@ -269,6 +286,10 @@ class Indentation extends React.Component<IndentationProps, IndentationState> {
                 const listData = data.listData?.length ? data.listData : data.childList;
                 return <List ref={data.ref} key={data.key} id={data.key} listData={listData as any} mountValues={mountValues} dndValues={dndValues} />;
               }
+              case BlockStyleTypes.header:
+                return <Header ref={data.ref} key={data.key} id={data.key} level={data.headerLevel || 1} mountValues={mountValues} dndValues={dndValues} />;
+              case BlockStyleTypes.quote:
+                return <Quote ref={data.ref} key={data.key} id={data.key} mountValues={mountValues} dndValues={dndValues} />;
               default:
                 throw new Error('unexpected case');
             }

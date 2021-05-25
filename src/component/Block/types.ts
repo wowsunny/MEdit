@@ -1,5 +1,5 @@
 import { DefaultDataItem } from "types/ComponentTypes";
-import FocusManager from "utils/FocusManager";
+import FocusManager from "utils/editorTools/FocusManager";
 
 export interface defaultBlockProps {
   id: string;

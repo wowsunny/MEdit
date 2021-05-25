@@ -110,7 +110,7 @@ export default class PlainText extends InlineComponent {
       console.error(`active node is ${selection.anchorNode} instead of ${this.component}`);
     }
 
-    this.content = this.component.innerHTML.replace(/&nbsp;/g, ' ');
+    this.content = this.component.innerHTML.replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
     const offset = selection.anchorOffset;
     const curContent = this.content.slice(0, offset);
     const nextContent = this.content.slice(offset);

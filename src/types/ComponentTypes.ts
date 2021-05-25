@@ -9,9 +9,9 @@ export enum InlineStyleTypes {
 }
 
 export enum BlockStyleTypes {
-  heading = 'heading',
+  header = 'header',
   paragragh = 'paragraph',
-  codeBlock = 'codeblock',
+  quote = 'quote',
   list = 'list',
   li = 'li',
   indentation = 'indentation',

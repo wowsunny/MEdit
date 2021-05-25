@@ -1,5 +1,5 @@
 import { BlockStyleTypes, InlineStyleTypes } from 'types/ComponentTypes';
-import getKey from 'utils/getKey';
+import getKey from 'utils/editorTools/getKey';
 
 export interface DefaultComponentProps {
   type: InlineStyleTypes | BlockStyleTypes;

@@ -3,8 +3,7 @@ import PlainText from 'component/Inline/PlainText';
 import * as React from 'react';
 import { RefObject } from 'react';
 import { BlockStyleTypes, DefaultDataItem, InlineStyleTypes } from 'types/ComponentTypes';
-import { dataListToComponents } from 'utils/dataToComponent';
-import FocusManager from 'utils/FocusManager';
+import { dataListToComponents } from 'utils/editorTools/dataToComponent';
 import dndWrapper from '../dndWrapper';
 import EditableBlock from '../EditableBlock';
 import { defaultBlockProps } from '../types';
@@ -90,6 +89,12 @@ class List extends React.Component<ListProps> {
       return child.getDataList();
     });
     return this.listData;
+  }
+
+  public getMarkdown() {
+    return this.childList.map(child => {
+      return `- ${child.getMarkdown()}`;
+    }).join('\n');
   }
 
   findChildIndex(key: string): number {

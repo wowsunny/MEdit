@@ -58,18 +58,7 @@
     "react/jsx-key": "error",
     "consistent-return": "off",
     "no-debugger": "off",
-    "import/no-extraneous-dependencies": [
-      "error",
-      {
-        "devDependencies": [
-          "**/*.test.js",
-          "**/*.test.jsx",
-          "**/*.test.ts",
-          "**/*.test.tsx",
-          "src/tests/**/*"
-        ]
-      }
-    ],
+    "import/no-extraneous-dependencies": "off",
     "react/jsx-props-no-spreading": "off",
     "import/prefer-default-export": "off",
     "react/jsx-boolean-value": "off",

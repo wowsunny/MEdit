@@ -1,7 +1,7 @@
 import EventBus, { BusEventTypes } from 'component/EventBus';
 import DefaultComponent, { DefaultComponentProps } from 'component/DefaultComponent';
 import { BlockStyleTypes, DefaultDataItem, InlineStyleTypes } from 'types/ComponentTypes';
-import { componentsToDataList } from 'utils/componentToData';
+import { componentsToDataList } from 'utils/editorTools/componentToData';
 import './style.scss';
 
 export interface InlineMountProps {
