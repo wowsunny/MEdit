@@ -3,8 +3,8 @@ import InlineComponent from 'component/Inline/InlineComponent';
 import PlainText from 'component/Inline/PlainText';
 import Wbr from 'component/Inline/Wbr';
 import { BlockStyleTypes, DefaultDataItem, InlineStyleTypes } from 'types/ComponentTypes';
-import { componentsToDataList } from 'utils/componentToData';
-import { dataListToComponents } from 'utils/dataToComponent';
+import { componentsToDataList } from 'utils/editorTools/componentToData';
+import { dataListToComponents } from 'utils/editorTools/dataToComponent';
 import { getDataList } from 'utils/markdown';
 import EventBus, { BusEventTypes } from '../EventBus';
 import EventManager from './Paragraph/EventManager';
@@ -25,11 +25,15 @@ export default abstract class EditableBlock extends DefaultComponent {
 
   oneStepToDelete: boolean;
 
-  constructor(props: DefaultComponentProps & { component: Element }) {
+  doMarkdownParse: boolean;
+
+  constructor(props: DefaultComponentProps & { component: Element, doMarkdownParse?: boolean }) {
     super(props);
-    const { component } = props;
+    const { component, doMarkdownParse = true } = props;
+    this.doMarkdownParse = doMarkdownParse;
     this.component = component;
     this.component.setAttribute('contenteditable', 'true');
+    this.component.setAttribute('style', 'outline: none; margin-top: 4px; margin-bottom: 4px');
     this.eventBus = new EventBus();
     this.oneStepToDelete = false;
     this.eventBus.subscribe(BusEventTypes.insertSibling, this.key, (values?: { dataList?: DefaultDataItem[] }) => {
@@ -120,6 +124,15 @@ export default abstract class EditableBlock extends DefaultComponent {
       if (md.replace('<wbr>', '') === '-&nbsp;') {
         this.blockMountProps!.handleInsertSiblings({ type: BlockStyleTypes.list, childList: [] }, true);
         return true;
+      } 
+      if (md.replace('<wbr>', '') === '&gt;&nbsp;') {
+        this.blockMountProps!.handleInsertSiblings({ type: BlockStyleTypes.quote, childList: [] }, true);
+        return true;
+      } 
+      if (md.replace('<wbr>', '').match(/^(#{1,6})&nbsp;$/)) {
+        const level = (md.replace('<wbr>', '').match(/^(#{1,6})&nbsp;$/) as any)[1].length;
+        this.blockMountProps!.handleInsertSiblings({ type: BlockStyleTypes.header, childList: [], headerLevel:level }, true);
+        return true;
       }
       return false;
     };
@@ -135,14 +148,16 @@ export default abstract class EditableBlock extends DefaultComponent {
         this.component.appendChild(wbr.component);
       });
       format();
-      const md = this.getMarkdown().replace('\u200B', '');
-      console.log('md: ', md);
+      if (this.doMarkdownParse) {
+        const md = this.getMarkdown().replace('\u200B', '');
+        console.log('md: ', md);
 
-      if (this.type === BlockStyleTypes.paragragh && BlockTrans(md)) return;
+        if (this.type === BlockStyleTypes.paragragh && BlockTrans(md)) return;
 
-      const dataList = getDataList(md);
-      // console.log('dataList: ', dataList);
-      this.setChildList(dataList);
+        const dataList = getDataList(md);
+        // console.log('dataList: ', dataList);
+        this.setChildList(dataList);
+      }
       this.eventBus.dispatch(BusEventTypes.parseAnchor, {}, true);
       // console.log('after parseAnchor , the component: ', this.component.innerHTML);
       this.eventBus.dispatch(BusEventTypes.showMarkdown, { show: true });

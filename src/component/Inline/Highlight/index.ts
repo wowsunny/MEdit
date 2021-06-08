@@ -1,6 +1,7 @@
 import { DefaultComponentProps } from 'component/DefaultComponent';
 import { InlineStyleTypes } from 'types/ComponentTypes';
 import InlineComponent from '../InlineComponent';
+import './style.scss';
 
 interface HighlightProps extends DefaultComponentProps {
 
