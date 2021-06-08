@@ -99,6 +99,13 @@ class Paragraph extends React.Component<ParagraphProps> {
     return this.target.getMarkdown();
   }
 
+  public transToDataItem(): DefaultDataItem {
+    return {
+      type: BlockStyleTypes.paragragh,
+      childList: this.getDataList()
+    };
+  }
+
   private refresh() {
     this.ref.current!.appendChild(this.target.component);
   }

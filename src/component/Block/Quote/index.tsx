@@ -90,6 +90,15 @@ class Quote extends React.Component<QuoteProps> {
     return `> ${this.target.getMarkdown()}`;
   }
 
+  public transToDataItem(): DefaultDataItem {
+    return {
+      type: BlockStyleTypes.quote,
+      childList: this.getDataList()
+    };
+  }
+
+
+
   private refresh() {
     this.ref.current!.appendChild(this.target.component);
   }

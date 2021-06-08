@@ -33,7 +33,7 @@ export default abstract class EditableBlock extends DefaultComponent {
     this.doMarkdownParse = doMarkdownParse;
     this.component = component;
     this.component.setAttribute('contenteditable', 'true');
-    this.component.setAttribute('style', 'outline: none;');
+    this.component.setAttribute('style', 'outline: none; margin-top: 4px; margin-bottom: 4px');
     this.eventBus = new EventBus();
     this.oneStepToDelete = false;
     this.eventBus.subscribe(BusEventTypes.insertSibling, this.key, (values?: { dataList?: DefaultDataItem[] }) => {

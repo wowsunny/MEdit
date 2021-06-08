@@ -6,6 +6,7 @@ export interface defaultBlockProps {
   mountValues: {
     childList: DefaultDataItem[];
     focusManager: FocusManager;
+    content?: string;
     handleTab: (key: string, isInside: boolean) => void,
     handleInsertSiblings: (key: string, childList: DefaultDataItem[], replace: boolean) => void;
     handleDestroy: (key: string) => void;

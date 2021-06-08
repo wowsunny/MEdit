@@ -15,9 +15,14 @@ export class HeaderComponent extends EditableBlock {
 
   constructor(props: DefaultComponentProps & { level: number, content: string }) {
     super({ ...props, component: document.createElement(`h${props.level}`) });
-    // this.refresh();
     this.content = props.content;
     this.doMarkdownParse = false;
+    this.refresh();
+    console.log(props);
+  }
+
+  public getContent() {
+    return this.component.textContent;
   }
 
   public refresh() {
@@ -51,7 +56,9 @@ class Header extends React.Component<HeaderProps> {
 
   constructor(props: HeaderProps) {
     super(props);
-    const { id, content = '', level, mountValues } = props;
+    const { id, level, mountValues } = props;
+    const { content = '' } = mountValues;
+    console.log(props);
     this.key = id;
     this.content = content;
     this.ref = React.createRef();
@@ -87,12 +94,20 @@ class Header extends React.Component<HeaderProps> {
   }
 
   public getDataList() {
-    return [{ type: InlineStyleTypes.plainText, childList: [], content: this.getContent() }];
+    return [{ type: InlineStyleTypes.plainText, childList: [], content: this.target.getContent() }];
   }
 
   public getMarkdown() {
     const arr = new Array(this.props.level).fill(1);
-    return `${arr.reduce((pre, cur) => `${pre}#`, '')} ${this.target.getMarkdown()}`;
+    return `${arr.reduce((pre, cur) => `${pre}#`, '')} ${this.target.getContent()}`;
+  }
+
+  public transToDataItem() {
+    return {
+      type: BlockStyleTypes.header,
+      childList: [],
+      content: this.target.getContent()
+    };
   }
 
   // content -> DOM

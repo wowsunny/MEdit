@@ -32,7 +32,7 @@ export function dataToComponent(data: DefaultDataItem, childList: DefaultCompone
   }
 }
 
-export function dataListToComponents(dataList: DefaultDataItem[]) {
+export function dataListToComponents(dataList: DefaultDataItem[] = []) {
   const result: any[] = [];
   dataList.forEach(data => {
     const childList = dataListToComponents(data.childList);

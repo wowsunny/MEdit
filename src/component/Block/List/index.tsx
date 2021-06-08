@@ -77,12 +77,6 @@ class List extends React.Component<ListProps> {
   }
 
 
-  public getDataList() {
-    return this.childList.map(child => {
-      return child.getDataList();
-    });
-  }
-
   // DOM -> listData
   private getListData() {
     this.listData = this.childList.map(child => {
@@ -95,6 +89,14 @@ class List extends React.Component<ListProps> {
     return this.childList.map(child => {
       return `- ${child.getMarkdown()}`;
     }).join('\n');
+  }
+
+  public transToDataItem(): DefaultDataItem {
+    return {
+      type: BlockStyleTypes.list,
+      childList: [],
+      listData: this.getListData()
+    };
   }
 
   findChildIndex(key: string): number {

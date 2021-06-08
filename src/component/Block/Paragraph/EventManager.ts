@@ -64,7 +64,15 @@ export default class EventManager {
         e.preventDefault();
         e.stopPropagation();
         this.onTab(!this.isShiftPress);
+      } else if (e.code === 'KeyS') {
+        if (this.isCtrlPress) {
+          e.preventDefault();
+          const dataList = (window as any).activeEditor.getDataList();
+          console.log(dataList);
+          (window as any).activeEditor.saveContent();
+        }
       }
+      console.log(e);
     });
 
     this.target.addEventListener('input', (e: InputEventInit) => {
